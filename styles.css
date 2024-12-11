@@ -1,0 +1,79 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+  }
+  
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+  }
+  
+  /* Formulario de entrada */
+  #item-form {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  #item-input {
+    padding: 12px;
+    font-size: 1.2rem;
+    width: 70%;
+    max-width: 300px;
+    margin-right: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  button {
+    padding: 12px 20px;
+    font-size: 1.2rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Estilos de la lista de items */
+  #items-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  #items-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+  
+  #items-list li button {
+    background-color: #dc3545;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #items-list li button:hover {
+    background-color: #c82333;
+  }
+
+
+  
+  

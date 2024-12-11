@@ -1,81 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist con Firebase</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin: 5px 0; }
-        .checked { text-decoration: line-through; color: gray; }
-    </style>
-</head>
-<body>
-    <h1>Checklist para la Casa</h1>
-    <input type="text" id="newItem" placeholder="Agregar nuevo ítem..." />
-    <button onclick="addItem()">Agregar</button>
-    <ul id="checklist"></ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Compra</title>
 
-    <script>
-        // Configuración de Firebase
-        import { initializeApp } from "firebase/app";
-        const firebaseConfig = {
-            apiKey: "AIzaSyBrn3b965fOhrzFFQg08Cl7MRJ9DEaqQQI",
-            authDomain: "lista-de-la-compra-22435.firebaseapp.com",
-            projectId: "lista-de-la-compra-22435",
-            storageBucket: "lista-de-la-compra-22435.firebasestorage.app",
-            messagingSenderId: "208557060957",
-            appId: "1:208557060957:web:4940787efd521ece3e6eb4"
-        };
+    <!-- Enlace al archivo de estilos CSS -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="tienda.png" type="image/x-icon" />
+  </head>
+  <body>
+    <h1>Lista de la Compra ❤️🛒</h1>
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    <!-- Formulario para agregar un item -->
+    <form id="item-form">
+      <input type="text" id="item-input" placeholder="Añadir item" required />
+      <button type="submit">Añadir</button>
+    </form>
 
-        // Referencia a la colección de la checklist
-        const checklistRef = db.collection('checklist');
+    <!-- Lista de items -->
+    <ul id="items-list"></ul>
 
-        // Cargar datos iniciales
-        function loadChecklist() {
-            checklistRef.onSnapshot((snapshot) => {
-                document.getElementById('checklist').innerHTML = ''; // Limpiar lista
-                snapshot.forEach(doc => {
-                    addItemToDOM(doc.id, doc.data().text, doc.data().checked);
-                });
-            });
+    <!-- Firebase y Firestore SDK -->
+    <script type="module">
+      // Importar Firebase y Firestore
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+      import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+
+      // Configuración de Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyBrn3b965fOhrzFFQg08Cl7MRJ9DEaqQQI",
+        authDomain: "lista-de-la-compra-22435.firebaseapp.com",
+        projectId: "lista-de-la-compra-22435",
+        storageBucket: "lista-de-la-compra-22435.firebasestorage.app",
+        messagingSenderId: "208557060957",
+        appId: "1:208557060957:web:4940787efd521ece3e6eb4"
+      };
+
+      // Inicializar Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Referencia a la colección "items"
+      const itemsRef = collection(db, 'items');
+
+      // Función para agregar un item a Firestore
+      const addItem = async (itemName) => {
+        try {
+          await addDoc(itemsRef, {
+            item: itemName, // El campo "item" en la colección Firestore
+          });
+        } catch (e) {
+          console.error("Error al agregar el item: ", e);
         }
+      };
 
-        // Agregar ítem a Firebase
-        async function addItem() {
-            const newItem = document.getElementById('newItem').value;
-            if (newItem.trim() !== "") {
-                const docRef = await checklistRef.add({ text: newItem, checked: false });
-                addItemToDOM(docRef.id, newItem, false);
-                document.getElementById('newItem').value = '';
-            }
-        }
+      // Función para eliminar un item
+      const deleteItem = async (id) => {
+        const itemDoc = doc(db, 'items', id);
+        await deleteDoc(itemDoc); // Eliminar el item
+      };
 
-        // Agregar ítem al DOM
-        function addItemToDOM(id, text, checked) {
-            const li = document.createElement('li');
-            li.textContent = text;
-            if (checked) li.classList.add('checked');
-            li.onclick = () => toggleCheck(id, li);
-            document.getElementById('checklist').appendChild(li);
-        }
+      // Mostrar los items desde Firestore
+      const displayItems = async () => {
+        const itemsList = document.getElementById('items-list');
+        itemsList.innerHTML = ''; // Limpiar la lista antes de agregar los nuevos items
 
-        // Actualizar el estado de un ítem en Firebase
-        async function toggleCheck(id, li) {
-            const isChecked = !li.classList.contains('checked');
-            li.classList.toggle('checked');
-            await checklistRef.doc(id).update({ checked: isChecked });
-        }
+        // Obtener todos los items desde Firestore
+        const snapshot = await getDocs(itemsRef);
 
-        // Cargar la lista al iniciar
-        loadChecklist();
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const li = document.createElement('li');
+          const itemName = data.item;
+          const itemId = doc.id;
+
+          li.textContent = itemName; // Mostrar el campo "item"
+
+          // Crear el botón de eliminar
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = 'Eliminar';
+          deleteButton.addEventListener('click', () => {
+            deleteItem(itemId); // Eliminar el item
+            li.remove(); // Eliminar el item de la lista visualmente
+          });
+
+          // Añadir el botón a la lista
+          li.appendChild(deleteButton);
+          itemsList.appendChild(li);
+        });
+      };
+
+      // Manejar el evento de envío del formulario
+      document.getElementById('item-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const itemInput = document.getElementById('item-input');
+        addItem(itemInput.value); // Agregar el item a Firestore
+        itemInput.value = ''; // Limpiar el campo de entrada
+        displayItems(); // Mostrar la lista actualizada (esto puede estar de más, porque `getDocs` lo hace)
+      });
+
+      // Llamar a la función para mostrar los items cuando la página se cargue
+      window.onload = displayItems;
     </script>
-</body>
+  </body>
 </html>
+>>>>>>> 6cc843a (cambios)
