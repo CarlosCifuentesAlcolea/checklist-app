@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist con Firebase</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 5px 0; }
+        .checked { text-decoration: line-through; color: gray; }
+    </style>
+</head>
+<body>
+    <h1>Checklist para la Casa</h1>
+    <input type="text" id="newItem" placeholder="Agregar nuevo ítem..." />
+    <button onclick="addItem()">Agregar</button>
+    <ul id="checklist"></ul>
+
+    <script>
+        // Configuración de Firebase
+        import { initializeApp } from "firebase/app";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrn3b965fOhrzFFQg08Cl7MRJ9DEaqQQI",
+            authDomain: "lista-de-la-compra-22435.firebaseapp.com",
+            projectId: "lista-de-la-compra-22435",
+            storageBucket: "lista-de-la-compra-22435.firebasestorage.app",
+            messagingSenderId: "208557060957",
+            appId: "1:208557060957:web:4940787efd521ece3e6eb4"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Referencia a la colección de la checklist
+        const checklistRef = db.collection('checklist');
+
+        // Cargar datos iniciales
+        function loadChecklist() {
+            checklistRef.onSnapshot((snapshot) => {
+                document.getElementById('checklist').innerHTML = ''; // Limpiar lista
+                snapshot.forEach(doc => {
+                    addItemToDOM(doc.id, doc.data().text, doc.data().checked);
+                });
+            });
+        }
+
+        // Agregar ítem a Firebase
+        async function addItem() {
+            const newItem = document.getElementById('newItem').value;
+            if (newItem.trim() !== "") {
+                const docRef = await checklistRef.add({ text: newItem, checked: false });
+                addItemToDOM(docRef.id, newItem, false);
+                document.getElementById('newItem').value = '';
+            }
+        }
+
+        // Agregar ítem al DOM
+        function addItemToDOM(id, text, checked) {
+            const li = document.createElement('li');
+            li.textContent = text;
+            if (checked) li.classList.add('checked');
+            li.onclick = () => toggleCheck(id, li);
+            document.getElementById('checklist').appendChild(li);
+        }
+
+        // Actualizar el estado de un ítem en Firebase
+        async function toggleCheck(id, li) {
+            const isChecked = !li.classList.contains('checked');
+            li.classList.toggle('checked');
+            await checklistRef.doc(id).update({ checked: isChecked });
+        }
+
+        // Cargar la lista al iniciar
+        loadChecklist();
+    </script>
+</body>
+</html>
